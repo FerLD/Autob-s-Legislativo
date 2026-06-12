@@ -1,0 +1,17 @@
+services:
+  plantilla-acervos:
+    container_name: plantilla-acervos
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "6001:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - congreso-network
+
+networks:
+  congreso-network:
+    driver: bridge

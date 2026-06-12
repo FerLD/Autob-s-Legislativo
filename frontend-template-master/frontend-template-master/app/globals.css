@@ -1,0 +1,144 @@
+@import "tailwindcss";
+@import "./styles/front.css";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Colores institucionales del Congreso de Guanajuato */
+  --background: #ffffff;
+  --foreground: #383838;
+  --primary: #C5AB81;
+  --secondary: #383838;
+
+  /* Variantes de primary */
+  --primary-light: #D4C4A5;
+  --primary-dark: #A8915D;
+
+  /* Grises */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  --font-avant-garde: "Avant Garde", "Avantgarde", "Century Gothic", "AppleGothic", sans-serif;
+}
+
+.dark {
+  --background: #111827;
+  /* gray-900 */
+  --foreground: #f9fafb;
+  /* gray-50 */
+  --secondary: #f9fafb;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-avant-garde);
+}
+
+/* Custom scrollbar - estilo sutil */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Selection con color institucional */
+::selection {
+  background: rgba(197, 171, 129, 0.3);
+  color: var(--secondary);
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Perspective for 3D effects */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+/* Shadow utilities */
+.shadow-3xl {
+  box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.15);
+}
+
+/* Select styling */
+select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+select option {
+  padding: 12px;
+}
+
+/* Focus styles con color institucional */
+*:focus-visible {
+  outline: 2px solid rgba(197, 171, 129, 0.5);
+  outline-offset: 2px;
+}
+
+/* Transiciones suaves globales */
+a,
+button {
+  transition: all 0.3s ease;
+}
