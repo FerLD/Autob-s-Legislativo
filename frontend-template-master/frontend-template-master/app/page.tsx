@@ -12,8 +12,8 @@ export default function Home() {
         <div className="flex flex-col min-h-screen">
             {/* Hero Section */}
             <section className="relative py-12 md:py-20 overflow-hidden bg-[#1a1a1a] dark:bg-inherit transition-colors duration-500">
-
-                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_1px,_transparent_1px)] bg-[length:20px_20px] dark:hidden" />
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,_rgba(255,255,255,0.18)_1px,_transparent_1px)] bg-[length:20px_20px] dark:hidden"> 
+                </div>
 
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="max-w-4xl mx-auto text-center">
@@ -21,8 +21,7 @@ export default function Home() {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
-                        >
+                            transition={{ duration: 0.6 }}>
                             <h1 className="text-4xl md:text-6xl font-extrabold text-white dark:text-blue-100 mb-6 leading-tight">
                                 Autobús <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-dark via-primary to-primary-light">
