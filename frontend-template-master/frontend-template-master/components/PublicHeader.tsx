@@ -4,17 +4,46 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, Moon, Sun, Search, Filter  } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 
 export function PublicHeader() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
     const { theme, setTheme } = useTheme();
     const [filterOpen, setFilterOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
     useEffect(() => setMounted(true), []);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            const params = new URLSearchParams();
+            params.set('q', searchQuery);
+            if (selectedFilters.length > 0) {
+                params.set('filters', selectedFilters.join(','));
+            }
+            router.push(`/buscar?${params.toString()}`);
+        }
+    };
+
+    const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSearch(e as any);
+        }
+    };
+
+    const toggleFilter = (filterId: string) => {
+        setSelectedFilters(prev => 
+            prev.includes(filterId) 
+                ? prev.filter(f => f !== filterId)
+                : [...prev, filterId]
+        );
+    };
 
     if (pathname?.startsWith('/admin')) return null;
 
@@ -47,14 +76,17 @@ export function PublicHeader() {
 
                 {/* Buscador & Filtros */}
                 <div className="flex items-center gap-3 ml-auto">
-                    <div className="relative hidden md:block w-56">
+                    <form onSubmit={handleSearch} className="relative hidden md:block w-56">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
                             placeholder="Buscar..."
-                            className="w-full pl-9 pr-3 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 placeholder:text-gray-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={handleSearchKeyDown}
+                            className="w-full pl-9 pr-3 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 placeholder:text-gray-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm cursor-text"
                         />
-                    </div>
+                    </form>
 
                     <div className="hidden md:flex items-center gap-2 relative">
                         <button
@@ -79,19 +111,37 @@ export function PublicHeader() {
                                 <div className="flex flex-col gap-2">
 
                                     <button
-                                        className="px-4 py-2 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-gray-200/80 dark:border-gray-700/70 hover:bg-primary hover:text-white transition text-left shadow-sm"
+                                        type="button"
+                                        onClick={() => toggleFilter('metodologia')}
+                                        className={`px-4 py-2 rounded-2xl transition text-left shadow-sm ${
+                                            selectedFilters.includes('metodologia')
+                                                ? 'bg-primary text-white border border-primary'
+                                                : 'bg-white/90 dark:bg-slate-900/90 border border-gray-200/80 dark:border-gray-700/70 hover:bg-primary hover:text-white'
+                                        }`}
                                     >
                                         Con Metodología
                                     </button>
 
                                     <button
-                                        className="px-4 py-2 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-gray-200/80 dark:border-gray-700/70 hover:bg-primary hover:text-white transition text-left shadow-sm"
+                                        type="button"
+                                        onClick={() => toggleFilter('dictamen-comision')}
+                                        className={`px-4 py-2 rounded-2xl transition text-left shadow-sm ${
+                                            selectedFilters.includes('dictamen-comision')
+                                                ? 'bg-primary text-white border border-primary'
+                                                : 'bg-white/90 dark:bg-slate-900/90 border border-gray-200/80 dark:border-gray-700/70 hover:bg-primary hover:text-white'
+                                        }`}
                                     >
                                         Con Dictamen en Comisión
                                     </button>
 
                                     <button
-                                        className="px-4 py-2 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-gray-200/80 dark:border-gray-700/70 hover:bg-primary hover:text-white transition text-left shadow-sm"
+                                        type="button"
+                                        onClick={() => toggleFilter('dictamen')}
+                                        className={`px-4 py-2 rounded-2xl transition text-left shadow-sm ${
+                                            selectedFilters.includes('dictamen')
+                                                ? 'bg-primary text-white border border-primary'
+                                                : 'bg-white/90 dark:bg-slate-900/90 border border-gray-200/80 dark:border-gray-700/70 hover:bg-primary hover:text-white'
+                                        }`}
                                     >
                                         Con Dictamen
                                     </button>
