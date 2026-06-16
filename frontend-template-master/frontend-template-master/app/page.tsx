@@ -4,9 +4,12 @@ import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, Layout, Palette, Shield, Zap, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useTheme } from 'next-themes';
 
 export default function Home() {
     const [showAll, setShowAll] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const { theme, setTheme } = useTheme();
     
     return (
         <div className="flex flex-col min-h-screen">
@@ -24,7 +27,7 @@ export default function Home() {
                             transition={{ duration: 0.6 }}>
                             <div className="relative pb-40">
                                 <img
-                                    src="/Camion28.png"
+                                    src="/Camion2.png"
                                     alt="Autobús legislativo"
                                     className="absolute left-1/2 top-8 -translate-x-1/2 w-full max-w-1000 rounded-3xl object-cover opacity-95 -z-10"
                                 />
@@ -87,16 +90,14 @@ export default function Home() {
                             >
                                 {/* Imagen con contenedor gris por si no carga la ruta */}
                                 <div className="h-44 bg-gray-200 dark:bg-gray-800 overflow-hidden flex items-center justify-center text-gray-400 text-xs">
-                                    <img
-                                        src="/ejemplo.jpg"
+                                    <img src={ theme === 'dark'? '/logoCDGazul.png': '/LogoCDGblanco.png'}
                                         alt="Ejemplo de iniciativa"
                                         className="w-full h-full object-cover hover:scale-105 transition duration-500 fallback-img"
                                         onError={(e) => {
-                                            // Esto oculta la imagen rota si el archivo no existe en /public
-                                            e.currentTarget.style.display = 'none';
+                                            e.currentTarget.src = '/LogoCDGblanco.png';
                                         }}
                                     />
-                                    <span className="absolute dark:text-gray-500">Sin imagen (Verifica /public/ejemplo.jpg)</span>
+                                    {/*<span className="absolute dark:text-gray-500">Sin imagen (Verifica /public/ejemplo.jpg)</span>*/}
                                 </div>
 
                                 <div className="p-4">
