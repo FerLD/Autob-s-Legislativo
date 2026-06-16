@@ -264,23 +264,66 @@ return (
                         initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="w-full max-w-9xl min-h-[12rem] bg-primary/5 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all p-8"
-                        >
+                        className="w-full max-w-9xl bg-primary/5 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all p-8"
+                    >
+                        {/* Encabezado */}
                         <div className="w-20 h-20 bg-primary rounded-xl flex items-center justify-center mb-6">
-                            <BookOpen   className="text-white" size={32} />
+                            <BookOpen className="text-white" size={32} />
                         </div>
 
-                        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-blue-100">Metodologías</h3>
-                        <p className="mt-4 text-gray-600 dark:text-gray-400">Información del expediente legislativo.</p>
-                        <div className="flex gap-3 mt-6">
-                            <span className="px-4 py-2 rounded-full bg-primary/20 text-primary text-sm">Activo</span>
-                            <span className="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm">
-                            2026
+                        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-blue-100">
+                            Metodologías
+                        </h3>
+                        <p className="mt-4 text-gray-600 dark:text-gray-400">
+                            Información del expediente legislativo.
+                        </p>
+
+                        <div className="flex gap-3 mt-6 mb-8">
+                            <span className="px-4 py-2 rounded-full bg-primary/20 text-primary text-sm">
+                                Activo
                             </span>
+                            <span className="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm">
+                                2026
+                            </span>
+                        </div>
+
+                        {/* TABLA */}
+                        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950/40">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-gray-50 dark:bg-gray-800/60 text-sm text-gray-600 dark:text-gray-300">
+                                        <th className="p-4">Descripción</th>
+                                        <th className="p-4 border-l border-gray-200 dark:border-gray-700">Fecha y hora</th>
+                                        <th className="p-4 border-l border-gray-200 dark:border-gray-700">Lugar</th>
+                                        <th className="p-4 border-l border-gray-200 dark:border-gray-700 text-center">Transmisión</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody className="text-sm text-gray-600 dark:text-gray-300 divide-y divide-gray-200 dark:divide-gray-800">
+                                    <tr className="hover:bg-primary/5 transition">
+                                        <td className="p-4">
+                                            Reunión de la Comisión para dar cuenta de la iniciativa y aprobar metodología de análisis
+                                        </td>
+                                        <td className="p-4 border-l border-gray-200 dark:border-gray-700 whitespace-pre-line">
+                                            {"12/06/2026\n11:44"}
+                                        </td>
+                                        <td className="p-4 border-l border-gray-200 dark:border-gray-700">
+                                            Salón 3 de Comisiones
+                                        </td>
+                                        <td className="p-4 border-l border-gray-200 dark:border-gray-700 text-center">
+                                            <a href="#" className="inline-flex text-red-600 dark:text-red-400 hover:scale-110 transition">
+                                            <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24">
+                                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                            </svg>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </motion.div>
                 </div>
-            )}  
+            )}
 
             {seccionesActivas.includes("actas") && (
                 <div className="flex justify-center mb-6">

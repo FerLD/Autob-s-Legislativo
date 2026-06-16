@@ -22,18 +22,25 @@ export default function Home() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}>
-                            <h1 className="text-4xl md:text-6xl font-extrabold text-white dark:text-blue-100 mb-6 leading-tight">
-                                Autobús <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-dark via-primary to-primary-light">
-                                    Legislativo
-                                </span>
-                            </h1>
+                            <div className="relative pb-40">
+                                <img
+                                    src="/Camion28.png"
+                                    alt="Autobús legislativo"
+                                    className="absolute left-1/2 top-8 -translate-x-1/2 w-full max-w-1000 rounded-3xl object-cover opacity-95 -z-10"
+                                />
 
-                            <p className="text-lg text-gray-300 dark:text-blue-200 mb-8 max-w-2xl mx-auto leading-relaxed">
+                                <h1 className="relative text-4xl md:text-6xl font-extrabold text-white dark:text-blue-100 mb-6 leading-tight z-20">
+                                    Autobús <br />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-dark via-primary to-primary-light">
+                                        Legislativo
+                                    </span>
+                                </h1>
+                            </div>
+
+                            <p className="text-lg text-gray-300 dark:text-blue-200 mt-10 mb-8 max-w-2xl mx-auto leading-relaxed">
                                 Bienvenido a la nueva etapa digital del Congreso del Estado de Guanajuato.
                                 Una plataforma moderna, rápida y accesible diseñada para el ciudadano.
                             </p>
-                            <img src="/Camion.png" alt="Autobús legislativo" className="w-full max-w-60 mx-auto rounded-lg shadow-lg" />
                         </motion.div>
                     {/* Botones 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -99,7 +106,7 @@ export default function Home() {
 
                                     {/* Forzamos el texto a mantenerse visible en modo oscuro */}
                                     <h3 className="mt-3 text-xl font-bold text-gray-900 dark:text-blue-100">
-                                        Nueva Ley de Economía Circular
+                                        Nueva Ley de Economía Circular 605/LXVI-I
                                     </h3>
                                     
                                     <p className="mt-2 text-gray-600 dark:text-gray-400 line-clamp-3">
