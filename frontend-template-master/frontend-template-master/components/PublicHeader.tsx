@@ -151,7 +151,7 @@ export function PublicHeader() {
                         )}
                     </div>
 
-                    {/* Theme toggle */}
+
                     {mounted && (
                         <button
                             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -162,7 +162,7 @@ export function PublicHeader() {
                         </button>
                     )}
 
-                    {/* Mobile menu button */}
+
                     <button
                         className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -173,7 +173,6 @@ export function PublicHeader() {
                 </div>
             </div>
 
-            {/* Mobile Navigation Drawer */}
             <AnimatePresence>
                 {mobileMenuOpen && (
                     <motion.div
