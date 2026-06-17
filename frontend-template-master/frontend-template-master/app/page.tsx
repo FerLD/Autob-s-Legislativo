@@ -123,7 +123,7 @@ export default function Home() {
                                         </span>
                                     </div>
 
-                                    <Link href="/expediente">
+                                    <Link href="/prueba">
                                         <button className="mt-4 w-full py-2 rounded-lg bg-primary text-white hover:bg-primary-dark dark:bg-gray-800 dark:border dark:border-gray-700 dark:hover:bg-gray-700 transition font-semibold">
                                             Ver expediente
                                         </button>
