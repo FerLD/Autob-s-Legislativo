@@ -339,7 +339,7 @@ export default function BuscarPage() {
                         <div className="space-y-4">
                             {results.map((exp, idx) => (
                                 <motion.div key={exp.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: idx * 0.05 }}>
-                                    <Link href="/expediente" className="block">
+                                    <Link href="/prueba" className="block">
                                         <div className="group bg-white dark:bg-slate-900/40 rounded-xl border border-gray-200 dark:border-[#1e3a5f] p-6 hover:border-primary/40 hover:shadow-lg transition-all duration-300 cursor-pointer">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex-1">
