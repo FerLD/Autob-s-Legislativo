@@ -45,23 +45,6 @@ export default function Home() {
                                 Una plataforma moderna, rápida y accesible diseñada para el ciudadano.
                             </p>
                         </motion.div>
-                    {/* Botones 
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <Link 
-                                href="/ejemplo" 
-                                className="group px-6 py-3 bg-primary text-white rounded-lg font-bold text-base shadow-md shadow-primary/20 hover:bg-primary-dark hover:scale-105 transition-all duration-300 flex items-center gap-3"
-                            >
-                                Ver Proyectos
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </Link>
-
-                            <Link 
-                                href="/docs" 
-                                className="px-6 py-3 bg-primary/10 dark:bg-white/5 backdrop-blur-md text-white dark:text-blue-100 border border-primary/20 dark:border-white/10 rounded-lg font-bold text-base hover:bg-primary/20 dark:hover:bg-white/10 transition-all duration-300"
-                            >
-                                Guía de Estilo
-                            </Link>
-                        </div>*/}
                     </div>
                 </div>
             </section>
@@ -133,49 +116,45 @@ export default function Home() {
                         ))}
                     </div>
 
-                    {/* Botón para expandir/contraer */}
-                    <div className="flex justify-center mt-12">
-                        <motion.button
-                            onClick={() => setShowAll(!showAll)}
-                            initial={{ opacity: 0, y: 10 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: false }}
-                            transition={{ duration: 0.3 }}
-                            className="group px-8 py-3 bg-primary/10 dark:bg-white/5 border border-primary/30 dark:border-white/10 rounded-lg font-bold text-primary dark:text-blue-100 hover:bg-primary/20 dark:hover:bg-white/10 transition-all duration-300 flex items-center gap-3"
-                        >
-                            {showAll ? 'Ver menos' : 'Ver más iniciativas'}
-                            <motion.div
-                                animate={{ rotate: showAll ? 180 : 0 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <ChevronDown className="w-5 h-5" />
+    
+                    {/* Sección de SharePoint */}
+                    <section className="py-16 bg-gray-50 dark:bg-transparent transition-colors duration-500">
+                        <div className="container mx-auto px-4 max-w-7xl">
+                            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} 
+                                className="relative overflow-hidden rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-xl transition-all duration-500 p-8 md:p-10">
+                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                                {/* Información */}
+                                <div className="flex items-center gap-5">
+                                    <div className="w-20 h-20 flex items-center justify-center">
+                                        <img src={ theme === 'dark'? '/CEPoscuro.png': '/CEPblanco.png'}
+                                            alt="CEP"
+                                            className="w-36 h-36 object-contain"
+                                        />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-blue-100">Repositorio Documental CEP</h2>
+                                        <p className="mt-2 max-w-xl text-gray-600 dark:text-gray-400">Consulta documentos, capítulos legislativos y recursos institucionales desde la plataforma documental.</p>
+                                        <div className="flex gap-3 mt-4">
+                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary/10 dark:bg-primary/20 text-primary">Documentos</span>
+                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">CEP</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Acción */}
+                                <Link href="/sharepoint">
+                                    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-blue-100 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-blue-100">
+                                        <BookOpen className="w-5 h-5" />
+                                        Repositorio CEP
+                                    </motion.button>
+                                </Link>
+                            </div>
                             </motion.div>
-                        </motion.button>
-                    </div>
+                        </div>
+                    </section>
+
                 </div>
             </section>
-
-
-            {/* Call to Action 
-            <section className="py-16 relative overflow-hidden bg-primary dark:bg-primary-dark">
-                <div className="absolute inset-0 opacity-10 bg-[url('/logoLegislaturaBlancoH.png')] bg-no-repeat bg-right-bottom bg-[length:600px] dark:hidden"></div>
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="max-w-4xl mx-auto text-center text-white dark:text-blue-100">
-                        <h2 className="text-3xl font-bold mb-6">¿Listo para comenzar la migración?</h2>
-                        <p className="text-lg text-white/80 dark:text-blue-100 mb-8">
-                            Explora la documentación y comienza a construir la nueva cara del Poder Legislativo.
-                        </p>
-                        <Link 
-                            href="/docs" 
-                            className="inline-block px-8 py-3 bg-primary/20 text-white rounded-full font-black text-base shadow-md hover:bg-primary/30 dark:hover:bg-transparent hover:scale-105 transition-all duration-300"
-                        >
-                            Comenzar Ahora
-                        </Link>
-                    </div>
-                </div>
-            </section>*/}
-
-
         </div>
     );
 }

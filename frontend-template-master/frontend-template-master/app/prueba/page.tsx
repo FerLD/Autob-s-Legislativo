@@ -46,8 +46,8 @@ export default function ExpedientePage() {
     function Info({ t, d }: any) {
     return (
         <div>
-        <p className="text-sm text-gray-500">{t}</p>
-        <p className="font-semibold text-gray-800 dark:text-gray-200 mt-1">{d}</p>
+            <p className="text-sm text-gray-500">{t}</p>
+            <p className="font-semibold text-gray-800 dark:text-gray-200 mt-1">{d}</p>
         </div>
     );
     }
@@ -62,7 +62,7 @@ export default function ExpedientePage() {
     }
 
 return (
-    <div className="min-h-screen bg-gray-50 dark:bg-transparent transition-colors duration-500">
+    <div className="min-h-screen bg-gray-50 dark:bg-transparent transition-colors duration-500">        
         <section className="container mx-auto px-4 py-16 max-w-6xl">
         
         {/* TITULO */}
