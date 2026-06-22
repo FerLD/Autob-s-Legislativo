@@ -83,7 +83,7 @@ return (
                     className="flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
                 >
                     <Icono size={18} />
-                    {sec.titulo}
+                    {sec.titulo} 
                 </button>
                 );
             })}
