@@ -16,6 +16,7 @@ export function PublicHeader() {
     const [filterOpen, setFilterOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => setMounted(true), []);
 
@@ -66,12 +67,17 @@ export function PublicHeader() {
                     <Link href="/" className="text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-primary py-2">
                         Inicio
                     </Link>
+                    <Link href="/sharepoint" className="text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-primary py-2">
+                        CEP
+                    </Link>
+                    
+                {/* 
                     <Link href="/docs" className="text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-primary py-2">
                         Guía de Estilo
                     </Link>
                     <Link href="/ejemplo" className="text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-primary py-2">
                         Ejemplo
-                    </Link>
+                    </Link> */}
                 </nav>
 
                 {/* Buscador & Filtros */}
