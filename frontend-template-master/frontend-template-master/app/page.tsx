@@ -1,10 +1,17 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import { useTheme } from 'next-themes';
+
+import {
+  getDocumentoSIAD,
+  getTodosDocumentosSIAD,
+  DocumentoSIAD
+} from '@/services/inilegClientService';
 
 interface Iniciativa {
   iniciativa_id: number;
@@ -20,10 +27,16 @@ interface Iniciativa {
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const { theme } = useTheme();
+  const router = useRouter();
   const [iniciativas, setIniciativas] = useState<Iniciativa[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Estado de loading por card, no global
+  const [loadingDocId, setLoadingDocId] = useState<number | null>(null);
+  const [docError, setDocError] = useState<string | null>(null);
+
   const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
@@ -43,12 +56,29 @@ export default function Home() {
               (result.data || []).map((i: Iniciativa) => [i.iniciativa_id, i])
             ).values()
           );
-          setIniciativas(unique);
+
+          const sorted = unique.sort((a, b) => {
+            const getLeg = (exp: string) => {
+              const match = exp.match(/\/(.+)$/);
+              return match? match[1] : exp;
+            };
+
+            const legA = getLeg(a.expediente);
+            const legB = getLeg(b.expediente);
+
+            if (legA!== legB) return legB.localeCompare(legA);
+
+            const dateA = a.fecha_entrega? new Date(a.fecha_entrega).getTime() : 0;
+            const dateB = b.fecha_entrega? new Date(b.fecha_entrega).getTime() : 0;
+            return dateB - dateA;
+          });
+
+          setIniciativas(sorted);
         } else {
           setError(result.error || 'Error al cargar los datos');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error de conexión');
+        setError(err instanceof Error? err.message : 'Error de conexión');
       } finally {
         setLoading(false);
       }
@@ -66,6 +96,37 @@ export default function Home() {
     if (newPage === currentPage) return;
     setCurrentPage(newPage);
   }, [currentPage]);
+
+  // Función ahora recibe la iniciativa como parámetro
+  const handleVerDocumento = async (iniciativa: Iniciativa) => {
+    setLoadingDocId(iniciativa.iniciativa_id);
+    setDocError(null);
+
+    try {
+      if (!iniciativa.folio_id) {
+        throw new Error('No hay folio ID disponible para esta iniciativa');
+      }
+
+      const doc = await getDocumentoSIAD(iniciativa.folio_id);
+
+      if (doc?.file) {
+        window.open(doc.file, '_blank');
+      } else {
+        const todos = await getTodosDocumentosSIAD(iniciativa.folio_id);
+        if (todos.length > 0 && todos[0]?.file) {
+          window.open(todos[0].file, '_blank');
+        } else {
+          throw new Error('No se encontró ningún documento disponible');
+        }
+      }
+    } catch (error) {
+      const msg = error instanceof Error? error.message : 'Error desconocido';
+      setDocError(msg);
+      alert(`Error al cargar el documento: ${msg}`);
+    } finally {
+      setLoadingDocId(null);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -136,73 +197,138 @@ export default function Home() {
             </div>
           )}
 
-          {!loading && !error && (
+          {!loading &&!error && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {visibleIniciativas.map((iniciativa) => (
-                  <motion.div
-                    key={iniciativa.iniciativa_id}
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4 }}
-                    className="bg-primary/5 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
-                  >
-                    <div className="h-79 bg-gray-200 dark:bg-gray-800 overflow-hidden">
-                      <img
-                        src={iniciativa.imagen_url}
-                        alt={iniciativa.comunicado_titulo}
-                        className="w-full h-full object-cover object-top hover:scale-105 transition duration-500"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = mounted && theme === 'dark'
-                            ? '/logoCDGazul.png'
-                            : '/LogoCDGblanco.png';
-                        }}
-                      />
-                    </div>
+                {visibleIniciativas.map((iniciativa) => {
+                  const isLoadingDoc = loadingDocId === iniciativa.iniciativa_id;
 
-                    <div className="p-4">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                        iniciativa.estatus === 'Rendida en tiempo'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
-                          : iniciativa.estatus === 'Rendida de forma extemporánea'
-                          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400'
-                          : 'bg-primary/10 dark:bg-primary/20 text-primary'
-                      }`}>
-                        {iniciativa.estatus}
-                      </span>
-
-                      <h3 className="mt-3 text-xl font-bold text-gray-900 dark:text-blue-100 line-clamp-2">
-                        {iniciativa.comunicado_titulo}
-                      </h3>
-
-                      <p className="mt-2 text-gray-600 dark:text-gray-400 line-clamp-3">
-                        {iniciativa.resumen_corto || 'Sin descripción disponible'}
-                      </p>
-
-                      <div className="flex gap-2 mt-3">
-                        <span className="px-3 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-                          {iniciativa.expediente}
-                        </span>
-                        <span className="px-3 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-                          {iniciativa.fecha_entrega || 'Sin fecha'}
-                        </span>
+                  return (
+                    <motion.div
+                      key={iniciativa.iniciativa_id}
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4 }}
+                      className="bg-primary/5 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+                    >
+                      <div className="h-79 bg-gray-200 dark:bg-gray-800 overflow-hidden">
+                        <img
+                          src={iniciativa.imagen_url}
+                          alt={iniciativa.comunicado_titulo}
+                          className="w-full h-full object-cover object-top hover:scale-105 transition duration-500"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = mounted && theme === 'dark'
+                              ? '/logoCDGazul.png'
+                              : '/LogoCDGblanco.png';
+                          }}
+                        />
                       </div>
 
-                      <Link href={`/expediente/${iniciativa.iniciativa_id}`}>
-                        <button className="mt-4 w-full py-2 rounded-lg bg-primary text-white hover:bg-primary-dark dark:bg-gray-800 dark:border dark:border-gray-700 dark:hover:bg-gray-700 transition font-semibold">
-                          Ver expediente
-                        </button>
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="p-5 flex flex-col flex-grow">
+                        <div className="flex-grow">
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-blue-100 line-clamp-2 mb-2 leading-tight">
+                            {iniciativa.comunicado_titulo}
+                          </h3>
+
+                          <p className="text-sm text-gray-600 dark:text-blue-200/70 line-clamp-3 mb-4 leading-relaxed">
+                            {iniciativa.resumen_corto || 'Sin descripción disponible'}
+                          </p>
+
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                              </svg>
+                              {iniciativa.expediente}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              {iniciativa.fecha_entrega || 'Sin fecha'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Solo los 2 botones que ya tenías */}
+                        <div className="flex flex-col gap-2.5 mt-2">
+                          <Link href={`/expediente/${iniciativa.iniciativa_id}`}>
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="w-full py-2.5 px-4 rounded-lg font-semibold text-sm 
+                                        bg-[#C5AB81]/10 hover:bg-[#C5AB81]/15
+                                        text-[#C5AB81] hover:text-[#b8985f]
+                                        border border-[#C5AB81] hover:border-[#b8985f]
+                                        transition-all duration-200 
+                                        flex items-center justify-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              Ver expediente
+                            </motion.button>
+                          </Link>
+
+                          <motion.button
+                            onClick={() => handleVerDocumento(iniciativa)}
+                            disabled={isLoadingDoc}
+                            whileHover={!isLoadingDoc? { scale: 1.02 } : {}}
+                            whileTap={!isLoadingDoc? { scale: 0.98 } : {}}
+                            className={`
+                              w-full py-2.5 px-4 rounded-xl font-medium text-sm
+                              transition-all duration-300
+                              flex items-center justify-center gap-2
+                              border
+                              ${isLoadingDoc
+                              ? 'bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500 cursor-not-allowed border-gray-200 dark:border-slate-700'
+                                : 'bg-white dark:bg-slate-900/50 text-gray-700 dark:text-blue-100 hover:bg-gray-50 dark:hover:bg-slate-800 border-gray-300 dark:border-slate-700 hover:border-primary/40 hover:shadow-md'
+                              }
+                            `}
+                          >
+                            {isLoadingDoc? (
+                              <>
+                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Cargando documento...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                Ver investigación / observaciones
+                              </>
+                            )}
+                          </motion.button>
+
+                          {docError && loadingDocId === iniciativa.iniciativa_id && (
+                            <motion.p
+                              initial={{ opacity: 0, y: -5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-xs text-red-500 dark:text-red-400 text-center flex items-center justify-center gap-1"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {docError}
+                            </motion.p>
+                          )}
+                        </div>
+                      </div>
+
+                    </motion.div>
+                  );
+                })}
               </div>
 
               {/* Paginación */}
               {totalPages > 1 && (
                 <div className="flex flex-col items-center gap-4 mt-12">
-
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Página <span className="font-semibold text-gray-700 dark:text-gray-200">{currentPage}</span> de{' '}
                     <span className="font-semibold text-gray-700 dark:text-gray-200">{totalPages}</span>
@@ -211,8 +337,6 @@ export default function Home() {
                   </p>
 
                   <div className="flex items-center gap-1.5">
-
-                    {/* « Primera */}
                     <button
                       onClick={() => changePage(1)}
                       disabled={currentPage === 1}
@@ -222,7 +346,6 @@ export default function Home() {
                       «
                     </button>
 
-                    {/* ← Anterior */}
                     <button
                       onClick={() => changePage(Math.max(1, currentPage - 1))}
                       disabled={currentPage === 1}
@@ -231,7 +354,6 @@ export default function Home() {
                       ← Anterior
                     </button>
 
-                    {/* Números */}
                     <div className="flex items-center gap-1 mx-1">
                       {Array.from({ length: totalPages }, (_, i) => i + 1)
                         .filter(page => {
@@ -248,7 +370,7 @@ export default function Home() {
                           return acc;
                         }, [])
                         .map((item, idx) =>
-                          item === 'ellipsis' ? (
+                          item === 'ellipsis'? (
                             <span key={`ellipsis-${idx}`} className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
                               ···
                             </span>
@@ -271,7 +393,6 @@ export default function Home() {
                         )}
                     </div>
 
-                    {/* Siguiente → */}
                     <button
                       onClick={() => changePage(Math.min(totalPages, currentPage + 1))}
                       disabled={currentPage === totalPages}
@@ -280,7 +401,6 @@ export default function Home() {
                       Siguiente →
                     </button>
 
-                    {/* » Última */}
                     <button
                       onClick={() => changePage(totalPages)}
                       disabled={currentPage === totalPages}
@@ -291,7 +411,6 @@ export default function Home() {
                     </button>
                   </div>
 
-                  {/* Barra de progreso */}
                   <div className="w-48 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-primary rounded-full"
@@ -299,7 +418,6 @@ export default function Home() {
                       transition={{ duration: 0.4, ease: 'easeInOut' }}
                     />
                   </div>
-
                 </div>
               )}
             </>
@@ -319,7 +437,7 @@ export default function Home() {
                   <div className="flex items-center gap-5">
                     <div className="w-20 h-20 flex items-center justify-center">
                       <img
-                        src={mounted && theme === 'dark' ? '/CEPoscuro.png' : '/CEPblanco.png'}
+                        src={mounted && theme === 'dark'? '/CEPoscuro.png' : '/CEPblanco.png'}
                         alt="CEP"
                         className="w-36 h-36 object-contain"
                       />

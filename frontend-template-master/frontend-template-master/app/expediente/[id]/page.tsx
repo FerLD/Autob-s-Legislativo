@@ -290,21 +290,21 @@ export default function ExpedientePage() {
             </motion.div>
 
             <div className="sticky top-20 z-20 rounded-2xl border border-gray-200 bg-white/80 p-4 mb-8 backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
-            <div className="flex flex-wrap gap-3">
-                {secciones.map((sec) => {
-                const Icono = sec.icono;
-                return (
-                    <button
-                    key={sec.id}
-                    onClick={() => scrollToSection(sec.id)}
-                    className="flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
-                    >
-                    <Icono size={18} />
-                    {sec.titulo}
-                    </button>
-                );
-                })}
-            </div>
+                <div className="flex flex-wrap gap-3">
+                    {secciones.map((sec) => {
+                    const Icono = sec.icono;
+                    return (
+                        <button
+                        key={sec.id}
+                        onClick={() => scrollToSection(sec.id)}
+                        className="flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all bg-gray-100 dark:bg-gray-800 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
+                        >
+                        <Icono size={18} />
+                        {sec.titulo}
+                        </button>
+                    );
+                    })}
+                </div>
             </div>
 
             <div id="resumen">
@@ -314,14 +314,7 @@ export default function ExpedientePage() {
                 <p className="mt-3 text-gray-600 dark:text-gray-400 text-lg">{data.resumen_corto}</p>
 
                 <div className="flex flex-wrap gap-3 mt-6">
-                    <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                    data.estatus === 'Rendida en tiempo' || data.estatus === 'Entregada a tiempo'
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                    : data.estatus === 'Rendida de forma extemporánea' || data.estatus === 'Entregada fuera de tiempo'
-                    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                    : 'bg-primary/10 dark:bg-primary/20 text-primary'
-                    }`}>● {data.estatus}</span>
-                    <span className="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm">Expediente {data.expediente}</span>
+                    <span className="px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-10">Expediente {data.expediente}</span>
                 </div>
 
                 <div className="mt-10 p-6 rounded-2xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800">

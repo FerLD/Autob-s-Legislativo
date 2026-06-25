@@ -17,15 +17,23 @@ interface Iniciativa {
   fecha_entrega: string;
   tipo_tramite?: string | null;
   iniciante?: string;
+  legislatura?: string;
 }
 
 const OPCIONES_TIPO = [
-  "Iniciativa",
-  "Minuta de Decreto Congreso de la Unión",
-  "Informe de Resultados ASEG",
-  "Proposiciones de Punto de Acuerdo",
-  "Comunicaciones",
+  "Con dictamen en Comisión",
+  "Con dictamen en pleno",
+  "Comisión",
 ];
+
+// Mapa de romanos a arábigos para buscar por número (ej: "66" → "LXVI")
+const ROMAN_TO_ARABIC: Record<string, number> = {
+  I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10,
+  XI: 11, XII: 12, XIII: 13, XIV: 14, XV: 15, XVI: 16, XVII: 17, XVIII: 18,
+  XIX: 19, XX: 20, XXI: 21, XXX: 30, XL: 40, L: 50, LX: 60,
+  LXI: 61, LXII: 62, LXIII: 63, LXIV: 64, LXV: 65, LXVI: 66,
+  LXVII: 67, LXVIII: 68, LXIX: 69, LXX: 70,
+};
 
 export default function BuscarPage() {
   const searchParams = useSearchParams();
@@ -37,6 +45,7 @@ export default function BuscarPage() {
 
   const [searchQuery, setSearchQuery] = useState(queryParam);
   const [keywordQuery, setKeywordQuery] = useState('');
+  const [legislaturaQuery, setLegislaturaQuery] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [typeOpen, setTypeOpen] = useState(false);
 
@@ -85,53 +94,73 @@ export default function BuscarPage() {
   }, []);
 
   // Filtrar datos cuando cambia cualquier filtro o los datos
-  useEffect(() => {
-    if (loadingData) return;
-    setLoadingFilter(true);
-    const timer = setTimeout(() => {
-      const filters = filtersParam ? filtersParam.split(',') : [];
-      const qLower = searchQuery.toLowerCase();
-      const kLower = keywordQuery.toLowerCase();
+useEffect(() => {
+  if (loadingData) return;
+  setLoadingFilter(true);
+  const timer = setTimeout(() => {
+    const filters = filtersParam ? filtersParam.split(',') : [];
+    const qLower = searchQuery.toLowerCase();
+    const kLower = keywordQuery.toLowerCase();
+    const lQuery = legislaturaQuery.trim().toUpperCase();
 
-      const filtered = allData.filter((ini) => {
-        const matchesQuery =
-          !searchQuery ||
-          ini.expediente.toLowerCase().includes(qLower) ||
-          ini.comunicado_titulo.toLowerCase().includes(qLower) ||
-          ini.resumen_corto?.toLowerCase().includes(qLower) ||
-          ini.iniciante?.toLowerCase().includes(qLower);
+    const filtered = allData.filter((ini) => {
+      const matchesQuery =
+        !searchQuery ||
+        ini.expediente.toLowerCase().includes(qLower) ||
+        ini.comunicado_titulo.toLowerCase().includes(qLower) ||
+        ini.resumen_corto?.toLowerCase().includes(qLower) ||
+        ini.iniciante?.toLowerCase().includes(qLower);
 
-        const matchesKeyword =
-          !keywordQuery ||
-          ini.comunicado_titulo.toLowerCase().includes(kLower) ||
-          ini.resumen_corto?.toLowerCase().includes(kLower);
+      const matchesKeyword =
+        !keywordQuery ||
+        ini.comunicado_titulo.toLowerCase().includes(kLower) ||
+        ini.resumen_corto?.toLowerCase().includes(kLower);
 
-        const matchesType =
-          !selectedType ||
-          ini.tipo_tramite?.toLowerCase() === selectedType.toLowerCase();
+      const matchesType =
+        !selectedType ||
+        ini.tipo_tramite?.toLowerCase() === selectedType.toLowerCase();
 
-        // Filtros del header (metodología, dictamen, etc.)
-        // La API no expone estos flags directamente, así que solo aplicamos
-        // si el campo existe; de lo contrario ignoramos ese filtro.
-        const matchesFilters =
-          filters.length === 0 ||
-          filters.every((f) => {
-            if (f === 'metodologia') return (ini as any).tiene_metodologia;
-            if (f === 'dictamen-comision') return (ini as any).tiene_dictamen_comision;
-            if (f === 'dictamen') return (ini as any).tiene_dictamen;
-            return true;
-          });
+      // Filtro de legislatura: SOLO por letras romanas en expediente y folio_id
+      const matchesLegislatura = (() => {
+        if (!legislaturaQuery) return true;
+        
+        // Extrae solo las letras romanas del expediente: "5/LXVI-I" → "LXVI"
+        const extractRoman = (str: string) => {
+          const match = str.match(/([IVXLCDM]+)(?:-\w+)?$/i);
+          return match? match[1].toUpperCase() : '';
+        };
 
-        return matchesQuery && matchesKeyword && matchesType && matchesFilters;
-      });
+        const expedienteRoman = extractRoman(ini.expediente);
+        const folioRoman = extractRoman(ini.folio_id || '');
+        const legislaturaRoman = extractRoman(ini.legislatura || '');
 
-      setResults(filtered);
-      setLoadingFilter(false);
-    }, 300);
+        // Solo compara con la parte romana, ignora números
+        return (
+          expedienteRoman.includes(lQuery) ||
+          folioRoman.includes(lQuery) ||
+          legislaturaRoman.includes(lQuery)
+        );
+      })();
 
-    return () => clearTimeout(timer);
-  }, [searchQuery, keywordQuery, selectedType, filtersParam, allData, loadingData]);
+      // Filtros del header (metodología, dictamen, etc.)
+      const matchesFilters =
+        filters.length === 0 ||
+        filters.every((f) => {
+          if (f === 'metodologia') return (ini as any).tiene_metodologia;
+          if (f === 'dictamen-comision') return (ini as any).tiene_dictamen_comision;
+          if (f === 'dictamen') return (ini as any).tiene_dictamen;
+          return true;
+        });
 
+      return matchesQuery && matchesKeyword && matchesType && matchesLegislatura && matchesFilters;
+    });
+
+    setResults(filtered);
+    setLoadingFilter(false);
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [searchQuery, keywordQuery, legislaturaQuery, selectedType, filtersParam, allData, loadingData]);
   const handleSearchSubmit = () => {
     const params = new URLSearchParams(searchParams.toString());
     if (searchQuery) params.set('q', searchQuery);
@@ -160,85 +189,97 @@ export default function BuscarPage() {
           </p>
 
           {/* Buscador */}
-          <div className="w-full mt-8 bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-[#1e3a5f] shadow-sm p-5">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div className="w-full mt-8 bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-[#1e3a5f] shadow-sm p-5">
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-              {/* Descripción */}
-              <div className="md:col-span-3">
-                <label className="text-sm text-gray-600 dark:text-slate-300">Descripción</label>
-                <input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                  className="w-full mt-1 h-10 px-4 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-950 text-gray-800 dark:text-blue-100 outline-none focus:ring-2 focus:ring-primary/40"
-                  placeholder="Buscar por número, título o expediente..."
-                />
-              </div>
+    {/* Descripción */}
+    <div className="md:col-span-4">
+      <label className="text-sm font-medium text-gray-600 dark:text-slate-300">Descripción</label>
+      <input
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
+        className="w-full mt-1.5 h-11 px-4 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-950 text-gray-800 dark:text-blue-100 outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+        placeholder="Buscar por número, título o expediente..."
+      />
+    </div>
 
-              {/* Tipo de expediente */}
-              <div ref={dropdownRef} className="relative">
-                <label className="text-sm text-gray-600 dark:text-slate-300">Tipo de trámite</label>
-                <button
-                  type="button"
-                  onClick={() => setTypeOpen(!typeOpen)}
-                  className="w-full mt-1 h-10 px-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary hover:text-white transition flex items-center justify-between shadow-sm"
-                >
-                  <span className="truncate mr-2">{selectedType || 'Todos'}</span>
-                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7" />
-                  </svg>
-                </button>
-                {typeOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -8 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-20 left-0 w-full rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-gray-200 dark:border-gray-700 backdrop-blur-xl shadow-xl p-2 z-50 overflow-y-auto"
-                  >
-                    <button
-                      onClick={() => { setSelectedType(''); setTypeOpen(false); }}
-                      className={`w-full px-4 py-2 rounded-xl text-left text-sm transition ${!selectedType ? 'bg-primary text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white'}`}
-                    >
-                      Todos
-                    </button>
-                    {OPCIONES_TIPO.map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => { setSelectedType(type); setTypeOpen(false); }}
-                        className={`w-full px-4 py-2 rounded-xl text-left text-sm transition ${selectedType === type ? 'bg-primary text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white'}`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </div>
+    {/* Tipo de expediente */}
+    <div ref={dropdownRef} className="relative">
+      <label className="text-sm font-medium text-gray-600 dark:text-slate-300">Filtros</label>
+      <button
+        type="button"
+        onClick={() => setTypeOpen(!typeOpen)}
+        className="w-full mt-1.5 h-11 px-4 rounded-xl bg-white dark:bg-slate-950 border border-gray-300 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:border-primary/50 transition-all flex items-center justify-between shadow-sm"
+      >
+        <span className="truncate mr-2">{selectedType || 'Todos'}</span>
+        <svg className="w-4 h-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7" />
+        </svg>
+      </button>
+      {typeOpen && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: -8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="absolute top-20 left-0 w-full rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-700 shadow-xl p-2 z-50 overflow-y-auto max-h-60"
+        >
+          <button
+            onClick={() => { setSelectedType(''); setTypeOpen(false); }}
+            className={`w-full px-4 py-2.5 rounded-lg text-left text-sm transition ${!selectedType ? 'bg-primary text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+          >
+            Todos
+          </button>
+          {OPCIONES_TIPO.map((type) => (
+            <button
+              key={type}
+              onClick={() => { setSelectedType(type); setTypeOpen(false); }}
+              className={`w-full px-4 py-2.5 rounded-lg text-left text-sm transition ${selectedType === type ? 'bg-primary text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+            >
+              {type}
+            </button>
+          ))}
+        </motion.div>
+      )}
+    </div>
 
-              {/* Palabras clave */}
-              <div>
-                <label className="text-sm text-gray-600 dark:text-slate-300">Palabras clave</label>
-                <input
-                  value={keywordQuery}
-                  onChange={(e) => setKeywordQuery(e.target.value)}
-                  placeholder="Palabra clave"
-                  className="w-full mt-1 h-10 px-4 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-950 text-gray-800 dark:text-blue-100 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/40"
-                />
-              </div>
+    {/* Palabras clave */}
+    <div>
+      <label className="text-sm font-medium text-gray-600 dark:text-slate-300">Palabras clave</label>
+      <input
+        value={keywordQuery}
+        onChange={(e) => setKeywordQuery(e.target.value)}
+        placeholder="Palabra clave"
+        className="w-full mt-1.5 h-11 px-4 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-950 text-gray-800 dark:text-blue-100 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+      />
+    </div>
 
-              {/* Botón buscar */}
-              <div className="flex items-end justify-end">
-                <button
-                  onClick={handleSearchSubmit}
-                  className="h-10 px-5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-dark transition flex items-center gap-2 shadow-sm"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  Buscar
-                </button>
-              </div>
-            </div>
-          </div>
+    {/* Legislatura */}
+    <div>
+      <label className="text-sm font-medium text-gray-600 dark:text-slate-300">Legislatura</label>
+      <input
+        value={legislaturaQuery}
+        onChange={(e) => setLegislaturaQuery(e.target.value)}
+        placeholder="Ej: LXVI, LXV"
+        className="w-full mt-1.5 h-11 px-4 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-950 text-gray-800 dark:text-blue-100 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+      />
+    </div>
+
+    {/* Botón buscar */}
+    <div className="flex items-end">
+      <button
+        onClick={handleSearchSubmit}
+        className="w-full h-11 px-5 rounded-xl bg-gradient-to-r from-primary to-[#b8985f] hover:from-primary-dark hover:to-[#a88750] text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg shadow-primary/20"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        Buscar
+      </button>
+    </div>
+
+  </div>
+</div>
         </motion.div>
 
         {/* Results */}
@@ -270,7 +311,7 @@ export default function BuscarPage() {
             <div className="space-y-4">
               {results.map((ini, idx) => (
                 <motion.div
-                  key={ini.iniciativa_id}
+                  key={`${ini.iniciativa_id}-${idx}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: idx * 0.04 }}
@@ -314,20 +355,16 @@ export default function BuscarPage() {
                             )}
                           </div>
 
-                          {/* Estatus badge */}
+                          {/* Badges: tipo y legislatura */}
                           <div className="flex items-center gap-2 mt-4 flex-wrap">
-                            <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium border ${
-                              ini.estatus === 'Rendida en tiempo'
-                                ? 'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20'
-                                : ini.estatus === 'Rendida de forma extemporánea'
-                                ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20'
-                                : 'bg-blue-50 text-blue-700 dark:bg-[#12345a] dark:text-blue-200 dark:border-slate-700'
-                            }`}>
-                              {ini.estatus || 'En proceso'}
-                            </span>
                             {ini.tipo_tramite && (
                               <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded border dark:border-gray-700">
                                 {ini.tipo_tramite}
+                              </span>
+                            )}
+                            {ini.legislatura && (
+                              <span className="px-2 py-0.5 text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded border border-blue-200 dark:border-blue-800">
+                                {ini.legislatura}
                               </span>
                             )}
                           </div>
