@@ -37,6 +37,7 @@ export async function GET(
           c.folio_id,
           c.extracto,
           c.fecha AS fecha_entrega,
+          comi.nombre AS nombre_comision,
           
           com.id AS comunicado_id,
           com.titulo AS comunicado_titulo,
@@ -56,6 +57,7 @@ export async function GET(
       INNER JOIN metodologias m ON m.iniciativa_id = i.id
       INNER JOIN opinion_metodologias om ON om.metodologia_id = m.id
       INNER JOIN correspondencias c ON c.opinion_metodologia_id = om.id
+      LEFT JOIN comisiones comi ON c.comision_id = comi.id
       INNER JOIN comunicados com ON com.iniciativa_id = i.id
       WHERE 
           i.id = $1

@@ -32,7 +32,6 @@ interface IniciativaCompleta {
   diputados: { nombre: string; foto: string | null }[];
   pasos_seguimiento: string[];
   documentos: { nombre: string; url: string }[];
-  // Extras del API
   objeto?: string;
   iniciativa_descripcion?: string;
   institucion?: string;
@@ -40,6 +39,7 @@ interface IniciativaCompleta {
   fecha_metodologia?: string;
   comunicado_resumen?: string;
   fecha_presentacion_pleno?: string;
+  nombre_comision?: string | null;
 }
 
 // FUNCIONES AYUDANTES
@@ -158,7 +158,8 @@ export default function ExpedientePage() {
         const dataAPI = result.data;
         
         const dataProcesada: IniciativaCompleta = {
-         ...dataAPI,
+          ...dataAPI,
+          nombre_comision: dataAPI.nombre_comision || null,
           resumen_ciudadano: dataAPI.resumen_ciudadano || 
             simplificarDescripcion(
               dataAPI.iniciativa_descripcion || dataAPI.resumen_corto || dataAPI.objetivo, 
@@ -447,15 +448,15 @@ export default function ExpedientePage() {
             </div>
 
             <div id="sesiones">
-            <Card>
+              <Card>
                 <IconBox><Scale size={35} /></IconBox>
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-blue-100">Sesiones y reuniones</h3>
                 <p className="mt-3 text-gray-600 dark:text-gray-400">Fechas de discusión y análisis técnico en comisiones.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-                <Info t="Fecha de presentación" d={data.fecha_presentacion_pleno || 'Por definir'} />
-                <Info t="Comisión" d="Revisión de la iniciativa" />
+                  <Info t="Fecha de presentación" d={data.fecha_presentacion_pleno || 'Por definir'} />
+                  <Info t="Comisión" d={data.nombre_comision || 'Sin comisión asignada'} />
                 </div>
-            </Card>
+              </Card>
             </div>
 
             {/* ================= DOCUMENTOS ================= */}
