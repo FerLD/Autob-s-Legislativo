@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
@@ -60,7 +61,7 @@ const ROMAN_TO_ARABIC: Record<string, number> = {
   LXVII: 67, LXVIII: 68, LXIX: 69, LXX: 70,
 };
 
-export default function BuscarPage() {
+function BuscarContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -98,7 +99,7 @@ export default function BuscarPage() {
           setError(result.error || 'Error al cargar los datos');
         }
       } catch (err) {
-        setError(err instanceof Error? err.message : 'Error de conexión');
+        setError(err instanceof Error ? err.message : 'Error de conexión');
       } finally {
         setLoadingData(false);
       }
@@ -112,9 +113,9 @@ export default function BuscarPage() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current &&!dropdownRef.current.contains(event.target as Node)) setTypeOpen(false);
-      if (comisionRef.current &&!comisionRef.current.contains(event.target as Node)) setComisionOpen(false);
-      if (legislaturaRef.current &&!legislaturaRef.current.contains(event.target as Node)) setLegislaturaOpen(false);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setTypeOpen(false);
+      if (comisionRef.current && !comisionRef.current.contains(event.target as Node)) setComisionOpen(false);
+      if (legislaturaRef.current && !legislaturaRef.current.contains(event.target as Node)) setLegislaturaOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -124,27 +125,27 @@ export default function BuscarPage() {
     if (loadingData) return;
     setLoadingFilter(true);
     const timer = setTimeout(() => {
-      const filters = filtersParam? filtersParam.split(',') : [];
+      const filters = filtersParam ? filtersParam.split(',') : [];
       const qLower = searchQuery.toLowerCase();
       const kLower = keywordQuery.toLowerCase();
 
       const filtered = allData.filter((ini) => {
         const matchesQuery =
-         !searchQuery ||
+          !searchQuery ||
           ini.expediente.toLowerCase().includes(qLower) ||
           ini.comunicado_titulo.toLowerCase().includes(qLower) ||
           ini.resumen_corto?.toLowerCase().includes(qLower) ||
           ini.iniciante?.toLowerCase().includes(qLower);
 
         const matchesKeyword =
-         !keywordQuery ||
+          !keywordQuery ||
           ini.comunicado_titulo.toLowerCase().includes(kLower) ||
           ini.resumen_corto?.toLowerCase().includes(kLower);
 
         const matchesType = (() => {
           if (!selectedType) return true;
           if (selectedType === "Con dictamen en pleno") {
-            return ini.fecha_presentacion_pleno!= null && ini.fecha_presentacion_pleno!== '';
+            return ini.fecha_presentacion_pleno != null && ini.fecha_presentacion_pleno !== '';
           }
           if (selectedType === "Con dictamen en Comisión") {
             return ini.tipo_tramite?.toLowerCase().includes("dictamen") &&
@@ -153,22 +154,16 @@ export default function BuscarPage() {
           return ini.tipo_tramite?.toLowerCase() === selectedType.toLowerCase();
         })();
 
-        // CORREGIDO: Filtro de legislatura
         const matchesLegislatura = (() => {
           if (selectedLegislatura.length === 0) return true;
-
-          // Extrae solo la parte romana del expediente: "38/LXV-I" → "LXV"
           const extractRomanBase = (str: string) => {
             if (!str) return '';
             const match = str.match(/\/([IVXLCDM]+)/i);
-            return match? match[1].toUpperCase() : '';
+            return match ? match[1].toUpperCase() : '';
           };
-
           const expedienteRoman = extractRomanBase(ini.expediente);
           const folioRoman = extractRomanBase(ini.folio_id || '');
           const legislaturaRoman = (ini.legislatura || '').toUpperCase();
-
-          // Verifica si alguna de las selecciones coincide
           return selectedLegislatura.some(val => {
             const selectedUpper = val.toUpperCase();
             return (
@@ -180,7 +175,7 @@ export default function BuscarPage() {
         })();
 
         const matchesComision =
-         !selectedComision ||
+          !selectedComision ||
           ini.nombre_comision === selectedComision;
 
         const matchesFilters =
@@ -203,10 +198,10 @@ export default function BuscarPage() {
         };
         const legA = getLegislaturaNum(a.expediente);
         const legB = getLegislaturaNum(b.expediente);
-        if (legB!== legA) return legB - legA;
-        const fechaA = a.fecha_presentacion_pleno? new Date(a.fecha_presentacion_pleno).getTime() : 0;
-        const fechaB = b.fecha_presentacion_pleno? new Date(b.fecha_presentacion_pleno).getTime() : 0;
-        if (fechaB!== fechaA) return fechaB - fechaA;
+        if (legB !== legA) return legB - legA;
+        const fechaA = a.fecha_presentacion_pleno ? new Date(a.fecha_presentacion_pleno).getTime() : 0;
+        const fechaB = b.fecha_presentacion_pleno ? new Date(b.fecha_presentacion_pleno).getTime() : 0;
+        if (fechaB !== fechaA) return fechaB - fechaA;
         return b.iniciativa_id - a.iniciativa_id;
       });
 
@@ -226,10 +221,10 @@ export default function BuscarPage() {
   const isLoading = loadingData || loadingFilter;
 
   const legislaturaLabel = selectedLegislatura.length === 0
-   ? 'Todas'
+    ? 'Todas'
     : selectedLegislatura.length === 2
-   ? 'LXVI y LXV'
-    : selectedLegislatura[0] === 'LXVI'? 'LXVI Legislatura' : 'LXV Legislatura';
+    ? 'LXVI y LXV'
+    : selectedLegislatura[0] === 'LXVI' ? 'LXVI Legislatura' : 'LXV Legislatura';
 
   const chevron = (
     <svg className="w-4 h-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,13 +252,12 @@ export default function BuscarPage() {
             Búsqueda de Iniciativas
           </h1>
           <p className="text-gray-600 dark:text-blue-200/70 text-center">
-            {searchQuery? `Resultados para: "${searchQuery}"` : 'Explora todas las iniciativas legislativas'}
+            {searchQuery ? `Resultados para: "${searchQuery}"` : 'Explora todas las iniciativas legislativas'}
           </p>
 
           <div className="w-full mt-8 bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-[#1e3a5f] shadow-sm p-5">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-              {/* Descripción */}
               <div className="md:col-span-4">
                 <label className="text-sm font-medium text-gray-600 dark:text-slate-300">Descripción</label>
                 <input
@@ -275,28 +269,26 @@ export default function BuscarPage() {
                 />
               </div>
 
-              {/* Filtros (tipo) */}
               <div ref={dropdownRef} className="relative">
                 <label className="text-sm font-medium text-gray-600 dark:text-slate-300">Filtros</label>
                 <button
                   type="button"
                   onClick={() => { setTypeOpen(!typeOpen); setComisionOpen(false); setLegislaturaOpen(false); }}
-                  className={`${btnBase} ${selectedType? 'border-primary/60 text-gray-900 dark:text-gray-100' : 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200'}`}
+                  className={`${btnBase} ${selectedType ? 'border-primary/60 text-gray-900 dark:text-gray-100' : 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200'}`}
                 >
                   <span className="truncate mr-2">{selectedType || 'Todos'}</span>
                   {chevron}
                 </button>
                 {typeOpen && (
                   <motion.div initial={{ opacity: 0, scale: 0.95, y: -8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.2 }} className={dropdownClass}>
-                    <button onClick={() => { setSelectedType(''); setTypeOpen(false); }} className={`${itemBase} ${!selectedType? itemActive : itemInactive}`}>Todos</button>
+                    <button onClick={() => { setSelectedType(''); setTypeOpen(false); }} className={`${itemBase} ${!selectedType ? itemActive : itemInactive}`}>Todos</button>
                     {OPCIONES_TIPO.map((type) => (
-                      <button key={type} onClick={() => { setSelectedType(type); setTypeOpen(false); }} className={`${itemBase} ${selectedType === type? itemActive : itemInactive}`}>{type}</button>
+                      <button key={type} onClick={() => { setSelectedType(type); setTypeOpen(false); }} className={`${itemBase} ${selectedType === type ? itemActive : itemInactive}`}>{type}</button>
                     ))}
                   </motion.div>
                 )}
               </div>
 
-              {/* Palabras clave */}
               <div>
                 <label className="text-sm font-medium text-gray-600 dark:text-slate-300">Palabras clave</label>
                 <input
@@ -307,13 +299,12 @@ export default function BuscarPage() {
                 />
               </div>
 
-              {/* Legislatura */}
               <div ref={legislaturaRef} className="relative">
                 <label className="text-sm font-medium text-gray-600 dark:text-slate-300">Legislatura</label>
                 <button
                   type="button"
                   onClick={() => { setLegislaturaOpen(!legislaturaOpen); setTypeOpen(false); setComisionOpen(false); }}
-                  className={`${btnBase} ${selectedLegislatura.length > 0? 'border-primary/60 text-gray-900 dark:text-gray-100' : 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200'}`}
+                  className={`${btnBase} ${selectedLegislatura.length > 0 ? 'border-primary/60 text-gray-900 dark:text-gray-100' : 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200'}`}
                 >
                   <span className="truncate mr-2">{legislaturaLabel}</span>
                   {chevron}
@@ -322,7 +313,7 @@ export default function BuscarPage() {
                   <motion.div initial={{ opacity: 0, scale: 0.95, y: -8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.2 }} className={`${dropdownClass} max-h-48`}>
                     <button
                       onClick={() => { setSelectedLegislatura([]); setLegislaturaOpen(false); }}
-                      className={`${itemBase} ${selectedLegislatura.length === 0? itemActive : itemInactive}`}
+                      className={`${itemBase} ${selectedLegislatura.length === 0 ? itemActive : itemInactive}`}
                     >
                       Todas
                     </button>
@@ -332,10 +323,10 @@ export default function BuscarPage() {
                         <button
                           key={op.valor}
                           onClick={() => setSelectedLegislatura(isSelected
-                           ? selectedLegislatura.filter(v => v!== op.valor)
+                            ? selectedLegislatura.filter(v => v !== op.valor)
                             : [...selectedLegislatura, op.valor]
                           )}
-                          className={`${itemBase} flex items-center justify-between ${isSelected? itemActive : itemInactive}`}
+                          className={`${itemBase} flex items-center justify-between ${isSelected ? itemActive : itemInactive}`}
                         >
                           <span>{op.label}</span>
                           {isSelected && (
@@ -350,7 +341,6 @@ export default function BuscarPage() {
                 )}
               </div>
 
-              {/* Botón buscar */}
               <div className="flex items-end">
                 <button
                   onClick={handleSearchSubmit}
@@ -363,22 +353,21 @@ export default function BuscarPage() {
                 </button>
               </div>
 
-              {/* Comisión — fila completa abajo */}
               <div ref={comisionRef} className="relative md:col-span-4">
                 <label className="text-sm font-medium text-gray-600 dark:text-slate-300">Comisión</label>
                 <button
                   type="button"
                   onClick={() => { setComisionOpen(!comisionOpen); setTypeOpen(false); setLegislaturaOpen(false); }}
-                  className={`${btnBase} ${selectedComision? 'border-primary/60 text-gray-900 dark:text-gray-100' : 'border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-500'}`}
+                  className={`${btnBase} ${selectedComision ? 'border-primary/60 text-gray-900 dark:text-gray-100' : 'border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-500'}`}
                 >
                   <span className="truncate mr-2">{selectedComision || 'Todas las comisiones'}</span>
                   {chevron}
                 </button>
                 {comisionOpen && (
                   <motion.div initial={{ opacity: 0, scale: 0.95, y: -8 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.2 }} className={dropdownClass}>
-                    <button onClick={() => { setSelectedComision(''); setComisionOpen(false); }} className={`${itemBase} ${!selectedComision? itemActive : itemInactive}`}>Todas</button>
+                    <button onClick={() => { setSelectedComision(''); setComisionOpen(false); }} className={`${itemBase} ${!selectedComision ? itemActive : itemInactive}`}>Todas</button>
                     {OPCIONES_COMISION.map((c) => (
-                      <button key={c} onClick={() => { setSelectedComision(c); setComisionOpen(false); }} className={`${itemBase} leading-snug ${selectedComision === c? itemActive : itemInactive}`}>{c}</button>
+                      <button key={c} onClick={() => { setSelectedComision(c); setComisionOpen(false); }} className={`${itemBase} leading-snug ${selectedComision === c ? itemActive : itemInactive}`}>{c}</button>
                     ))}
                   </motion.div>
                 )}
@@ -403,7 +392,7 @@ export default function BuscarPage() {
             </div>
           )}
 
-          {!error &&!isLoading && results.length > 0 && (
+          {!error && !isLoading && results.length > 0 && (
             <div className="space-y-4">
               {results.map((ini, idx) => (
                 <motion.div key={`${ini.iniciativa_id}-${idx}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: idx * 0.04 }}>
@@ -454,19 +443,19 @@ export default function BuscarPage() {
             </div>
           )}
 
-          {!error &&!isLoading && results.length === 0 && (
+          {!error && !isLoading && results.length === 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="text-center py-12">
               <FileText className="w-16 h-16 text-gray-300 dark:text-slate-700 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 dark:text-blue-100 mb-2">No se encontraron resultados</h2>
-              <p className="text-gray-600 dark:text-blue-200/70 mb-6">{searchQuery? `No hay iniciativas que coincidan con "${searchQuery}"` : 'Intenta con otros términos de búsqueda'}</p>
+              <p className="text-gray-600 dark:text-blue-200/70 mb-6">{searchQuery ? `No hay iniciativas que coincidan con "${searchQuery}"` : 'Intenta con otros términos de búsqueda'}</p>
               <Link href="/" className="inline-block px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium">Volver al Inicio</Link>
             </motion.div>
           )}
 
-          {!error &&!isLoading && results.length > 0 && (
+          {!error && !isLoading && results.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }} className="mt-8 p-4 bg-gray-100 dark:bg-slate-900/30 rounded-lg border border-gray-200 dark:border-[#1e3a5f]">
               <p className="text-sm text-gray-700 dark:text-slate-300">
-                Se encontraron <span className="font-semibold">{results.length}</span> resultado{results.length!== 1? 's' : ''}
+                Se encontraron <span className="font-semibold">{results.length}</span> resultado{results.length !== 1 ? 's' : ''}
                 {!loadingData && allData.length > 0 && <span className="text-gray-400 dark:text-slate-500"> de {allData.length} iniciativas</span>}
               </p>
             </motion.div>
@@ -474,5 +463,17 @@ export default function BuscarPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BuscarPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <BuscarContent />
+    </Suspense>
   );
 }
