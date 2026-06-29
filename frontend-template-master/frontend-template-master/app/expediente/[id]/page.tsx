@@ -29,7 +29,6 @@ interface IniciativaCompleta {
   iniciante: string;
   legislatura: string;
   grupos_parlamentarios: { nombre: string; logo: string }[];
-  diputados: { nombre: string; foto: string | null }[];
   pasos_seguimiento: string[];
   documentos: { nombre: string; url: string }[];
   objeto?: string;
@@ -40,6 +39,7 @@ interface IniciativaCompleta {
   comunicado_resumen?: string;
   fecha_presentacion_pleno?: string;
   nombre_comision?: string | null;
+  diputados: { nombre: string; foto: string | null; partido?: string | null }[];
 }
 
 // FUNCIONES AYUDANTES
@@ -247,7 +247,9 @@ export default function ExpedientePage() {
   function Step({ text }: { text: string }) {
     return (
       <div className="flex gap-4 items-center">
-        <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold">✓</div>
+        <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">
+          ✓
+        </div>
         <p className="text-gray-700 dark:text-gray-300 font-medium">{text}</p>
       </div>
     );
@@ -281,6 +283,27 @@ export default function ExpedientePage() {
         </div>
     </div>
   );
+
+  //Funcion colores partido
+    const COLORES_PARTIDO: Record<string, string> = {
+    'PAN':   '#0033A0',
+    'PRI':   '#ec211f',
+    'PRD':   '#FFCC00',
+    'MORENA':'#8B1A1A',
+    'PVEM':  '#2E8B2E',
+    'MC':    '#FF6600',
+    'PT':    '#e8122e',
+    'NA':    '#2E4057',
+  };
+  function getColorPartido(partido: string | null | undefined): string {
+      if (!partido) return '#9CA3AF'; // gris por defecto
+      const key = Object.keys(COLORES_PARTIDO).find(k =>
+        partido.toUpperCase().includes(k)
+      );
+      return key ? COLORES_PARTIDO[key] : '#9CA3AF';
+    }
+  
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-transparent transition-colors duration-500">
@@ -399,32 +422,36 @@ export default function ExpedientePage() {
                     </div>
                     </div>
 
-                    <div>
-                    <p className="text-sm text-gray-500 mb-4">Diputados involucrados</p>
-                    <div className="space-y-4">
-                        {data.diputados && data.diputados.length > 0 ? (
-                        data.diputados.map((dip) => (
-                            <div key={dip.nombre} className="flex items-center gap-4">
-                            {dip.foto ? (
-                                <img 
-                                src={dip.foto} 
-                                alt={dip.nombre} 
-                                className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm transition duration-300 hover:scale-105" 
-                                />
-                            ) : (
-                                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700">
-                                <User size={24} />
-                                </div>
-                            )}
-                            <span className="text-gray-900 dark:text-[#C5AB81] font-medium">{dip.nombre}</span>
-                            </div>
-                        ))
-                        ) : (
-                        <p className="text-gray-400 text-sm">No hay diputados registrados en esta propuesta</p>
-                        )}
-                    </div>
-                    </div>
-
+                  <div>
+            <p className="text-sm text-gray-500 mb-4">Diputados involucrados</p>
+            <div className="space-y-4">
+              {data.diputados && data.diputados.length > 0 ? (
+                data.diputados.map((dip) => (
+                  <div key={dip.nombre} className="flex items-center gap-4">
+                    {dip.foto ? (
+                      <img
+                        src={dip.foto}
+                        alt={dip.nombre}
+                        className="w-12 h-12 rounded-full object-cover shadow-sm transition duration-300 hover:scale-105"
+                        style={{ border: `3px solid ${getColorPartido(dip.partido)}` }}
+                      />
+                    ) : (
+                      <div
+                        className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-500"
+                        style={{ border: `3px solid ${getColorPartido(dip.partido)}` }}
+                      >
+                        <User size={24} />
+                      </div>
+                    )}
+                    <span className="text-gray-900 dark:text-[#C5AB81] font-medium">{dip.nombre}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400 text-sm">No hay diputados registrados en esta propuesta</p>
+              )}
+            </div>
+            
+                  </div>
                 </div>
                 </div>
             </Card>
