@@ -4,8 +4,8 @@ import { query } from '@/lib/db';
 import { IniciativaINILEG } from '@/types/inileg';
 
 const CONSULTA_INILEG = `
-  SELECT DISTINCT ON (iniciativa_id) *
-FROM (
+ SELECT DISTINCT ON (iniciativa_id) *
+  FROM (
     SELECT
         i.id AS iniciativa_id,
         i.expediente,
@@ -25,7 +25,7 @@ FROM (
         c.folio_id,
         c.extracto,
         c.fecha AS fecha_entrega,
-        comi.nombre as nombre_comision, 
+        comi.nombre AS nombre_comision,
 
         com.id AS comunicado_id,
         com.titulo AS comunicado_titulo,
@@ -33,6 +33,12 @@ FROM (
         com.imagen AS comunicado_imagen,
         com.created_at AS comunicado_fecha,
 
+      (
+          SELECT array_agg(d.slug || '|' || 'https://congreso-gto.s3.amazonaws.com/uploads/diputado/imagen/' || d.id::text || '/' || d.imagen)
+          FROM diputados_iniciativas di
+          INNER JOIN diputados d ON d.id = di.diputado_id
+          WHERE di.iniciativa_id = i.id
+      ) AS diputados,
         CASE
             WHEN c.fecha <= om.fecha_limite THEN 'Rendida en tiempo'
             WHEN c.fecha > om.fecha_limite THEN 'Rendida de forma extemporánea'
@@ -50,8 +56,8 @@ FROM (
         ON c.opinion_metodologia_id = om.id
     INNER JOIN comunicados com
         ON com.iniciativa_id = i.id
-    inner join comisiones comi
-    	on c.comision_id  = comi.id
+    INNER JOIN comisiones comi
+        ON c.comision_id = comi.id
 
     WHERE
         c.extracto ILIKE '%Instituto de Investigaciones Legislativas%'
@@ -63,6 +69,7 @@ FROM (
         AND c.folio_id <> ''
 ) t
 ORDER BY iniciativa_id, comunicado_fecha DESC;
+
 `;
 
 export async function getIniciativasINILEG(): Promise<IniciativaINILEG[]> {

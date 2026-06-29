@@ -45,9 +45,29 @@ export async function GET(
           com.imagen AS comunicado_imagen,
           com.created_at AS comunicado_fecha,
           
+        (
+            SELECT array_agg(
+                d.slug || '|' || 
+                'https://congreso-gto.s3.amazonaws.com/uploads/diputado/imagen/' || d.id::text || '/' || d.imagen ||
+                '|' || p.nombre
+            )
+            FROM diputados_iniciativas di
+            INNER JOIN diputados d ON d.id = di.diputado_id
+            INNER JOIN partidos p ON p.id = d.partido_id
+            WHERE di.iniciativa_id = i.id
+        ) AS diputados,
+
+          (
+              SELECT array_agg(DISTINCT p.nombre || '|' || 'https://congreso-gto.s3.amazonaws.com/uploads/partido/logo/' || p.id::text || '/' || p.logo)
+              FROM diputados_iniciativas di
+              INNER JOIN diputados d ON d.id = di.diputado_id
+              INNER JOIN partidos p ON p.id = d.partido_id
+              WHERE di.iniciativa_id = i.id
+          ) AS grupos_parlamentarios,
+          
           CASE 
-              WHEN c.fecha_limite <= om.fecha_limite THEN 'Rendida en tiempo'
-              WHEN c.fecha_limite > om.fecha_limite THEN 'Rendida de forma extemporánea'
+              WHEN c.fecha <= om.fecha_limite THEN 'Rendida en tiempo'
+              WHEN c.fecha > om.fecha_limite THEN 'Rendida de forma extemporánea'
               WHEN c.id IS NULL AND om.fecha_limite >= CURRENT_DATE THEN 'En espera'
               WHEN c.id IS NULL AND om.fecha_limite < CURRENT_DATE THEN 'No rendida'
               ELSE 'Por determinar'
@@ -63,11 +83,11 @@ export async function GET(
           i.id = $1
           AND c.extracto ILIKE '%Instituto de Investigaciones Legislativas%'
           AND com.titulo IS NOT NULL 
-          AND com.titulo != ''
+          AND com.titulo!= ''
           AND com.imagen IS NOT NULL 
-          AND com.imagen != ''
+          AND com.imagen!= ''
           AND c.folio_id IS NOT NULL
-          AND c.folio_id != ''
+          AND c.folio_id!= ''
       ORDER BY com.id, com.created_at DESC
       LIMIT 1;
     `;
@@ -86,8 +106,27 @@ export async function GET(
     
     const init = result.rows[0];
     
+    const diputados = (init.diputados || []).map((item: string) => {
+      const [slug, foto, partido] = item.split('|');
+      const nombre = slug
+        .split('-')
+        .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+        .join(' ')
+        .replace(/\s+\d+$/, ''); // ← quita el número al final
+      
+      return { nombre, foto: foto || null, partido: partido || null };
+    });
+
+    // Transformar grupos: "nombre|url" a {nombre, logo}
+    const grupos_parlamentarios = (init.grupos_parlamentarios || []).map((item: string) => {
+      const [nombre, logo] = item.split('|');
+      return { nombre, logo: logo || null };
+    });
+    
     const data = {
-      ...init,
+   ...init,
+      diputados,
+      grupos_parlamentarios,
       imagen_url: `https://congreso-gto.s3.amazonaws.com/uploads/comunicado/imagen/${init.comunicado_id}/${init.comunicado_imagen}`,
       fecha_presentacion_pleno: init.fecha_presentacion_pleno?.toISOString?.()?.split('T')[0] || null,
       fecha_metodologia: init.fecha_metodologia?.toISOString?.()?.split('T')[0] || null,
@@ -105,7 +144,7 @@ export async function GET(
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Error al obtener la iniciativa',
+        error: error instanceof Error? error.message : 'Error al obtener la iniciativa',
       },
       { status: 500 }
     );

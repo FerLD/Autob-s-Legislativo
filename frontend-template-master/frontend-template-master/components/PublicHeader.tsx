@@ -93,7 +93,7 @@ export function PublicHeader() {
                             className="w-full pl-9 pr-3 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 placeholder:text-gray-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm cursor-text"
                         />
                     </form>
-
+{/*
                     <div className="hidden md:flex items-center gap-2 relative">
                         <button
                             onClick={() => setFilterOpen(!filterOpen)}
@@ -157,7 +157,7 @@ export function PublicHeader() {
                         )}
                     </div>
 
-
+*/}
                     {mounted && (
                         <button
                             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

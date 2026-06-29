@@ -170,7 +170,7 @@ export default function Home() {
 
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-blue-100">
-              Iniciativas Legislativas
+              Estudios Acerca De Las Siguientes Iniciativas  
             </h2>
             <div className="w-20 h-1.5 bg-primary mx-auto mt-4 rounded-full"></div>
           </div>
